@@ -53,13 +53,36 @@ const fetchISSFlyOverTimes = (coords, callback) => {
       callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null); // Error messasge if fail retreiving API body and gives status code
       return;
     }
+    
     const passes = body.response;
     callback(null, passes); // returns response part of the body from API
   });
 };
 
+// chaining all functions in one function
+const nextISSTimesForMyLocation = (callback) => {
+
+  fetchMyIP((error, ip) => { // function starts by fetching IP
+    if (error) {
+      return callback(error, null); // if error return error msg from fetchMyIpP function
+    }
+
+    fetchCoordsByIP(ip, (error, loc) => { // if successful fetching IP next is fetching the location
+      if (error) {
+        return callback(error, null); // return error msg from fetchCoordsByIP if error
+      }
+
+      fetchISSFlyOverTimes(loc, (error, nextPasses) => { // finding location successful then next is finding when is next will pass by
+        if (error) {
+          return callback(error, null); // same from above return msg if error.
+        }
+
+        callback(null, nextPasses);
+      });
+    });
+  });
+};
+
 module.exports = {
-  fetchMyIP,
-  fetchCoordsByIP,
-  fetchISSFlyOverTimes
+  nextISSTimesForMyLocation
 };
